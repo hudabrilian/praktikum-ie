@@ -7,10 +7,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Laratrust\Contracts\LaratrustUser;
+use Laratrust\Traits\HasRolesAndPermissions;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class User extends Authenticatable
+class User extends Authenticatable implements LaraTrustUser
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, HasRolesAndPermissions;
 
     /**
      * The attributes that are mass assignable.
@@ -19,6 +22,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
     ];
@@ -42,4 +46,25 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    /**
+     * The roles that belong to the user.
+     */
+    public function rolesList(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class, 'users_roles', 'user_id', 'role_id');
+    }
+
+    /**
+     * The courses that belong to the user.
+     */
+    public function courses(): BelongsToMany
+    {
+        return $this->belongsToMany(Course::class, 'course_user');
+    }
+
+    public function coursesAssistant(): BelongsToMany
+    {
+        return $this->belongsToMany(Course::class, 'course_assistant');
+    }
 }

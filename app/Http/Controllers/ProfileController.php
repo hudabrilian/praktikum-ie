@@ -25,6 +25,14 @@ class ProfileController extends Controller
     }
 
     /**
+     * Display the user's accounts form.
+     */
+    public function accounts(Request $request): Response
+    {
+        return Inertia::render('Profile/Account');
+    }
+
+    /**
      * Update the user's profile information.
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
@@ -59,5 +67,24 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
+    }
+
+    /**
+     * Change active user role.
+     */
+    public function changeRole(Request $request) : RedirectResponse {
+        $request->validate([
+            'role' => ['required'],
+        ]);
+
+        $user = $request->user();
+        $userRoles = $request->user()->rolesList()->where('role_id', $request->role)->first();
+
+        if (!$userRoles) return redirect()->route('dashboard')->with('message', 'You doesn\' have the role.');
+
+        $user->removeRole($request->user()->roles()->first());
+        $user->addRole($request->role);
+
+        return Redirect::back();
     }
 }
